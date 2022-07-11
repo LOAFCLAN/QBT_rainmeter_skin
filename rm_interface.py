@@ -33,10 +33,11 @@ class RainMeterInterface:
 
         self.page_start = 0
         self.torrent_num = 0
-
-        self.qb_user = self.rainmeter.RmReadString("Username", 'admin', False)
-        self.qb_pass = self.rainmeter.RmReadString("Password", 'pass', False)
-        self.qb_host = self.rainmeter.RmReadString("Host", "http://127.0.0.1:8080", False)
+        with open("secrets.json", "r") as f:
+            secrets = json.load(f)
+        self.qb_user = secrets['Username']
+        self.qb_pass = secrets['Password']
+        self.qb_host = secrets['Host']
         self.qb = None
         self.qb_data = {}
         self.inhibitor_plugin = InhibitorPlugin(url="localhost", main_port=47675, alt_port=47676)
