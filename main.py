@@ -7,13 +7,13 @@ from threading import Thread
 try:
     logging.basicConfig(
         level=logging.INFO,
-        format=r"[%(asctime)s - %(levelname)s - %(threadName)s - %(name)s - %(funcName)s - %(message)s]",
+        format=r"%(asctime)s - %(levelname)s - %(threadName)s - %(name)s - %(funcName)s - %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
         filename=r"D:\Rainmeter\Logs\log.log")
 except Exception as e:
     logging.basicConfig(
         level=logging.INFO,
-        format=r"[%(asctime)s - %(levelname)s - %(threadName)s - %(name)s - %(funcName)s - %(message)s]")
+        format=r"%(asctime)s - %(levelname)s - %(threadName)s - %(name)s - %(funcName)s - %(message)s")
     logging.error(f"Error in InhibitorPlugin: {e}")
 
 import asyncio
@@ -99,7 +99,7 @@ class Rain:
             logging.error(f"Error in Update: {e}")
 
     def GetString(self) -> str:
-        return ""
+        return self.rainmeter_interface.get_string()
 
     def ExecuteBang(self, args) -> None:
         """Called by the rainmeter plugin"""

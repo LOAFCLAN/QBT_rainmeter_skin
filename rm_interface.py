@@ -3,6 +3,7 @@ import configparser
 import logging
 import traceback
 import json
+import os
 
 import humanize
 import qbittorrent.client
@@ -144,7 +145,7 @@ class RainMeterInterface:
         for meter in self.rainmeter_meters:
             async with self.rainmeter_lock:
                 for key, value in self.rainmeter_values[meter]:
-                    self.rainmeter.RmExecute(f"[!SetOption {meter} {key} \"{value}\"")
+                    self.rainmeter.RmExecute(f"[!SetOption {meter} {key} \"{value}\"]")
 
     def get_string(self) -> str:
         """Called by the rainmeter plugin to get the current display string"""

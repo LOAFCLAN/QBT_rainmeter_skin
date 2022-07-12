@@ -63,24 +63,24 @@ def _display_time(seconds, granularity=2):
 def torrent_format(tr_dict):
     rm_values = {}
     for i in range(4):
-        rm_values[f'TorrentName{i}']['Text'] = tr_dict[i]['name']
+        rm_values[f'TorrentName{i}'] = {'Text': tr_dict[i]['name']}
         rm_values[f'TorrentName{i}']['ToolTipText'] = tr_dict[i]['name']
-        rm_values[f'TorrentStatus{i}']['Text'] = tr_dict[i]['state'].capitalize()
-        rm_values[f'TorrentDSpeed{i}']['Text'] = humanize.naturalsize(tr_dict[i]['dlspeed']) + "/s"
+        rm_values[f'TorrentStatus{i}'] = {'Text': tr_dict[i]['state'].capitalize()}
+        rm_values[f'TorrentDSpeed{i}'] = {'Text': humanize.naturalsize(tr_dict[i]['dlspeed']) + "/s"}
         if rm_values[f'TorrentStatus{i}']['Text'] in _show_seeders:
-            rm_values[f'TorrentSeeds{i}']['Text'] = f"Seeds: {tr_dict[i]['num_complete']}({tr_dict[i]['num_seeds']})"
+            rm_values[f'TorrentSeeds{i}'] = {'Text': f"Seeds: {tr_dict[i]['num_complete']}({tr_dict[i]['num_seeds']})"}
         else:
-            rm_values[f'TorrentSeeds{i}']['Text'] =\
-                f"Leechs: {tr_dict[i]['num_incomplete']}({tr_dict[i]['num_leechs']})"
-        rm_values[f'TorrentETA{i}']['Text'] = "ETA: " + _display_time(tr_dict[i]['eta'])
-        rm_values[f'TorrentPercentage{i}']['Text'] = f"{tr_dict[i]['progress'] * 100:.1f}%"
-        rm_values[f'TorrentProgress{i}']['Text'] \
-            = humanize.naturalsize(tr_dict[i]['downloaded']) + "/" +\
-              humanize.naturalsize(tr_dict[i]['downloaded'] + tr_dict[i]['amount_left'])
-        rm_values[f'TorrentProgressBar{i}']['BarColor'] = _barColors[rm_values[f'TorrentStatus{i}']['Text']]
-        rm_values[f'TorrentUSpeed{i}']['Text'] = humanize.naturalsize(tr_dict[i]['upspeed']) + "/s"
-        rm_values[f'TorrentAddedOn{i}']['Text'] = humanize.naturaltime(
+            rm_values[f'TorrentSeeds{i}'] = {'Text': \
+                f"Leechs: {tr_dict[i]['num_incomplete']}({tr_dict[i]['num_leechs']})"}
+        rm_values[f'TorrentETA{i}'] = {'Text': "ETA: " + _display_time(tr_dict[i]['eta'])}
+        rm_values[f'TorrentPercentage{i}'] = {'Text': f"{tr_dict[i]['progress'] * 100:.1f}%"}
+        rm_values[f'TorrentProgress{i}'] = {'Text': \
+              humanize.naturalsize(tr_dict[i]['downloaded']) + "/" +\
+              humanize.naturalsize(tr_dict[i]['downloaded'] + tr_dict[i]['amount_left'])}
+        rm_values[f'TorrentProgressBar{i}'] = {'BarColor': _barColors[rm_values[f'TorrentStatus{i}']['Text']]}
+        rm_values[f'TorrentUSpeed{i}'] = {'Text': humanize.naturalsize(tr_dict[i]['upspeed']) + "/s"}
+        rm_values[f'TorrentAddedOn{i}'] = {'Text': humanize.naturaltime(
             datetime.fromtimestamp(tr_dict[i]['added_on'], tz=timezone("US/Eastern")).replace(tzinfo=None)
-        )
-        rm_values[f'TorrentRatio{i}']['Text'] = f"{tr_dict[i]['ratio']:.2f}"
+        )}
+        rm_values[f'TorrentRatio{i}'] = {'Text': f"{tr_dict[i]['ratio']:.2f}"}
     return rm_values
