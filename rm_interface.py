@@ -58,7 +58,7 @@ class RainMeterInterface:
             self.qb_connected = False
             self.qb_data = {}
             logging.debug("Launching background tasks")
-            self.inhibitor_plugin = InhibitorPlugin(url="1", main_port=47675, alt_port=47676)
+            self.inhibitor_plugin = InhibitorPlugin(url="172.17.0.1", main_port=47675, alt_port=47676)
             self.rainmeter.RmLog(self.rainmeter.LOG_NOTICE, "Launching background tasks")
             self.inhibitor_plug_task = self.event_loop.create_task(self.inhibitor_plugin.run(self.event_loop))
             self.refresh_task = self.event_loop.create_task(self.refresh_torrents())
@@ -111,7 +111,7 @@ class RainMeterInterface:
 
     async def parse_rm_values(self):
         """Parse the rainmeter values"""
-        logging.info("Parsing rainmeter values")
+        logging.debug("Parsing rainmeter values")
         try:
             torrents = self.torrents[self.page_start:self.page_start + 4]
             tprogress = {'progress': []}

@@ -10,7 +10,7 @@ try:
         level=logging.INFO,
         format=r"%(asctime)s - %(levelname)s - %(threadName)s - %(name)s - %(funcName)s - %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
-        filename=os.path.join(current_script_dir, "log.log"))
+        filename=r"D:\Rainmeter\Logs\log.log")
 except Exception as e:
     logging.basicConfig(
         level=logging.INFO,
