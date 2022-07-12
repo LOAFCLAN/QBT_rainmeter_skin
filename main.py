@@ -18,7 +18,7 @@ class Rain:
 
     def __init__(self):
         """Never actually called, reload is the actual entry point"""
-        logging.info("Initializing Rainmeter Script")
+        # logging.info("Initializing Rainmeter Script")
         self.rainmeter = None
         self.rainmeter_interface = None
         self.updater = None
@@ -39,7 +39,22 @@ class Rain:
 
     def Reload(self, rm, maxValue) -> None:
         try:
-            rm.RmLog(rm.LOG_NOTICE, "Reload Called")
+            # logfile = rm.RmReadString("Logfile")
+            try:
+                logging.info("Initializing CombinedLogger")
+                self.logging = CombinedLogger(
+                    name="Rainmeter", level=logging.DEBUG,
+                    formatter=
+                    r"%(asctime)s - %(levelname)s - Thread: %(threadName)s - %(name)s - %(funcName)s - %(message)s")
+                self.logging.setRMObject(rm)
+                logging.debug("Initialized CombinedLogger, creating rainmeter interface")
+                # logging.setLoggerClass(CombinedLogger)
+            except Exception as e:
+                logging.error(f"Error in CombinedLogger Init: {e}\n{traceback.format_exc()}")
+                return
+
+            self.logging.info("Reload called, creating asyncio event loop")
+
             self.rainmeter = rm
             self.event_loop = asyncio.new_event_loop()
             self.task = self.event_loop.create_task(self.true_init())

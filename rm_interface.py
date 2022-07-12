@@ -15,16 +15,16 @@ import combined_log
 from inhibitor_plugin import InhibitorPlugin
 from torrent_formatter import torrent_format
 
-logging.getLogger(__name__).setLevel(logging.DEBUG)
-
 
 class RainMeterInterface:
 
     def __init__(self, rainmeter, event_loop, logging: combined_log.CombinedLogger):
         try:
-            logging.debug(f"Initial working directory: {os.getcwd()}")
-            os.chdir(os.path.dirname(os.path.abspath(__file__)))
-            logging.debug(f"Changed working directory to: {os.getcwd()}")
+            self.logging = logging
+            self.logging.change_log_file(os.path.join(pathlib.Path(__file__).parent.resolve(), "Logs/Log.log"))
+            # logging.debug(f"Initial working directory: {os.getcwd()}")
+            # os.chdir(os.path.dirname(os.path.abspath(__file__)))
+            # logging.debug(f"Changed working directory to: {os.getcwd()}")
 
             self.logging.debug("Initializing RainMeterInterface")
             self.version = "v2.0"
