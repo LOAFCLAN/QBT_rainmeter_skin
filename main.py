@@ -2,12 +2,15 @@ import logging
 import os
 
 try:
-    logging.basicConfig(level=logging.INFO,
-                        format=r"[%(asctime)s - %(levelname)s - %(threadName)s - %(name)s - %(funcName)s - %(message)s]",
-                        datefmt="%Y-%m-%d %H:%M:%S", filename=os.path.realpath(r"C:/log.txt"))
+    logging.basicConfig(
+        level=logging.INFO,
+        format=r"[%(asctime)s - %(levelname)s - %(threadName)s - %(name)s - %(funcName)s - %(message)s]",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        filename=r"log.txt")
 except Exception as e:
-    logging.basicConfig(level=logging.INFO,
-                        format=r"[%(asctime)s - %(levelname)s - %(threadName)s - %(name)s - %(funcName)s - %(message)s]")
+    logging.basicConfig(
+        level=logging.INFO,
+        format=r"[%(asctime)s - %(levelname)s - %(threadName)s - %(name)s - %(funcName)s - %(message)s]")
     logging.error(f"Error in InhibitorPlugin: {e}")
 
 import asyncio
@@ -32,6 +35,13 @@ class Rain:
     async def on_update_restart(self):
         pass
 
+    def _task_done(self, task):
+        """Called when the rainmeter plugin is done with the task"""
+        try:
+            task.result()
+        except Exception as e:
+            logging.error(f"Error in _task_done: {e}")
+
     def Reload(self, rm, maxValue) -> None:
         try:
             rm.RmLog(rm.LOG_NOTICE, "Reload Called")
@@ -47,7 +57,8 @@ class Rain:
     def Update(self) -> None:
         """Called by the rainmeter plugin"""
         try:
-            asyncio.create_task(self.rainmeter_interface.update())
+            task = asyncio.create_task(self.rainmeter_interface.update())
+            task.add_done_callback(self._task_done)
         except Exception as e:
             logging.error(f"Error in Update: {e}")
 
@@ -57,7 +68,7 @@ class Rain:
     def ExecuteBang(self, args) -> None:
         """Called by the rainmeter plugin"""
         try:
-            asyncio.create_task(self.rainmeter_interface.execute_bang(args))
+            task = asyncio.create_task(self.rainmeter_interface.execute_bang(args))
         except Exception as e:
             logging.error(f"Error in ExecuteBang: {e}")
 
@@ -69,3 +80,5 @@ class Rain:
             task.add_done_callback(lambda _: task.result())
         except Exception as e:
             logging.error(f"Error in Finalize: {e}")
+
+

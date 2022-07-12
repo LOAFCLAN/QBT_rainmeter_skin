@@ -5,6 +5,7 @@ import traceback
 import json
 
 import humanize
+import qbittorrent.client
 from qbittorrent import Client
 
 from inhibitor_plugin import InhibitorPlugin
@@ -38,40 +39,48 @@ class RainMeterInterface:
         self.qb_user = secrets['Username']
         self.qb_pass = secrets['Password']
         self.qb_host = secrets['Host']
+        self.qb = Client(self.qb_host)
+        self.qb_connected = False
         self.qb = None
         self.qb_data = {}
         self.inhibitor_plugin = InhibitorPlugin(url="localhost", main_port=47675, alt_port=47676)
-        asyncio.create_task(self.inhibitor_plugin.run())
-        self._connect()
+        self.inhibitor_plug_task = asyncio.create_task(self.inhibitor_plugin.run())
+        self.refresh_task = asyncio.create_task(self.refresh_torrents())
 
     def _connect(self):
         try:
-            self.qb = Client(self.qb_host)
             self.qb.login(self.qb_user, self.qb_pass)
+            self.qb_connected = True
         except Exception as e:
             logging.critical(f"Unable to connect to server {e}\n{traceback.format_exc()}")
+            self.qb_connected = False
 
     async def refresh_torrents(self):
         while self.running:
             try:
-                torrents = self.qb.torrents()
-                qb_data = self.qb.sync_main_data()
-                self.qb_data['url'] = self.qb.url.split("/")[2]
-                self.qb_data['version'] = self.qb.qittorrent_version
-                self.qb_data['free_space'] = qb_data['server_state']['free_space_on_disk']
-                self.qb_data['global_dl'] = qb_data['server_state']['dl_info_speed']
-                self.qb_data['global_up'] = qb_data['server_state']['up_info_speed']
-                self.qb_data['total_peers'] = qb_data['server_state']['total_peer_connections']
+                if not self.qb_connected:
+                    self._connect()
+                try:
+                    torrents = self.qb.torrents()
+                    qb_data = self.qb.sync_main_data()
+                    self.qb_data['url'] = self.qb.url.split("/")[2]
+                    self.qb_data['version'] = self.qb.qittorrent_version
+                except qbittorrent.client.LoginRequired:
+                    self.qb_connected = False
+                else:
+                    self.qb_data['free_space'] = qb_data['server_state']['free_space_on_disk']
+                    self.qb_data['global_dl'] = qb_data['server_state']['dl_info_speed']
+                    self.qb_data['global_up'] = qb_data['server_state']['up_info_speed']
+                    self.qb_data['total_peers'] = qb_data['server_state']['total_peer_connections']
+                    torrents = sorted(torrents, key=lambda d: d['added_on'])
+                    torrents.reverse()
+                    self.torrent_num = len(torrents)
+                    self.torrents = torrents
+                    await self.parse_rm_values()
+                    await asyncio.sleep(2)
             except Exception as e:
                 logging.error(f"Failed to get torrents: {e}")
                 await asyncio.sleep(5)
-                continue
-            else:
-                torrents = sorted(torrents, key=lambda d: d['added_on'])
-                torrents.reverse()
-                self.torrent_num = len(torrents)
-                self.torrents = torrents
-                await asyncio.sleep(2)
 
     async def parse_rm_values(self):
         async with self.rainmeter_lock:
@@ -82,7 +91,7 @@ class RainMeterInterface:
             self.torrent_progress = json.dumps(tprogress)
             self.rainmeter_values = torrent_format(torrents)
             self.rainmeter_values['InhibitorMeter']['Text'] = await self.inhibitor_plugin.get_inhibitor_status()
-            self.rainmeter_values['ConnectionMeter']['Text'] =\
+            self.rainmeter_values['ConnectionMeter']['Text'] = \
                 "Connected to " + self.qb_data['url'] + "  qBittorrent " + self.qb_data['version']
             if self.inhibitor_plugin.get_inhibitor_state():
                 self.rainmeter_values['PlayButton']['Hidden'] = "0"
@@ -93,7 +102,7 @@ class RainMeterInterface:
             self.rainmeter_values['GlobalDownload']['Text'] = f"DL: {humanize.naturalsize(self.qb_data['global_dl'])}/s"
             self.rainmeter_values['GlobalUpload']['Text'] = f"UP: {humanize.naturalsize(self.qb_data['global_up'])}/s"
             self.rainmeter_values['GlobalPeers']['Text'] = f"Connected peers: {self.qb_data['total_peers']}"
-            self.rainmeter_values['FreeSpace']['Text'] =\
+            self.rainmeter_values['FreeSpace']['Text'] = \
                 f"Free space: {humanize.naturalsize(self.qb_data['free_space'])}"
 
     async def update(self):
