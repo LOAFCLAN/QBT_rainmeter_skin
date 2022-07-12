@@ -29,7 +29,6 @@ class RainMeterInterface:
             self.event_loop = event_loop
 
             self.running = True
-            self.rainmeter_lock = asyncio.Lock()
             self.torrents = {}
             self.rainmeter_values = {}
             self.torrent_progress = ""
@@ -58,7 +57,7 @@ class RainMeterInterface:
             self.qb_connected = False
             self.qb_data = {}
             logging.debug("Launching background tasks")
-            self.inhibitor_plugin = InhibitorPlugin(url="localhost", main_port=47675, alt_port=47676)
+            self.inhibitor_plugin = InhibitorPlugin(url="1", main_port=47675, alt_port=47676)
             self.rainmeter.RmLog(self.rainmeter.LOG_NOTICE, "Launching background tasks")
             self.inhibitor_plug_task = self.event_loop.create_task(self.inhibitor_plugin.run(self.event_loop))
             self.refresh_task = self.event_loop.create_task(self.refresh_torrents())
@@ -112,37 +111,38 @@ class RainMeterInterface:
     async def parse_rm_values(self):
         """Parse the rainmeter values"""
         logging.info("Parsing rainmeter values")
-        async with self.rainmeter_lock:
-            try:
-                torrents = self.torrents[self.page_start:self.page_start + 4]
-                tprogress = {'progress': []}
-                for torrent in torrents:
-                    tprogress['progress'].append(torrent['progress'] * 100.0)
-                self.torrent_progress = json.dumps(tprogress)
-                self.rainmeter_values = torrent_format(torrents)
-                self.rainmeter_values['ConnectionMeter'] = {'Text': "Connected to " + self.qb_data['url'] +
-                                                                    "  qBittorrent " + self.qb_data['version']}
-                if self.inhibitor_plugin.get_inhibitor_state():
-                    self.rainmeter_values['PlayButton'] = {'Hidden': "0"}
-                    self.rainmeter_values['PauseButton'] = {'Hidden': "1"}
-                else:
-                    self.rainmeter_values['PlayButton'] = {'Hidden': "1"}
-                    self.rainmeter_values['PauseButton'] = {'Hidden': "0"}
-                self.rainmeter_values['GlobalDownload'] = {
-                    'Text': f"DL: {humanize.naturalsize(self.qb_data['global_dl'])}/s"}
-                self.rainmeter_values['GlobalUpload'] = {
-                    'Text': f"UP: {humanize.naturalsize(self.qb_data['global_up'])}/s"}
-                self.rainmeter_values['GlobalPeers'] = {'Text': f"Connected peers: {self.qb_data['total_peers']}"}
-                self.rainmeter_values['FreeSpace'] =\
-                    {'Text': f"Free space: {humanize.naturalsize(self.qb_data['free_space'])}"}
-                self.rainmeter_values['InhibitorMeter'] = {'Text': await self.inhibitor_plugin.get_inhibitor_status()}
-            except Exception as e:
-                logging.error(f"Failed to parse rainmeter values: {e}\n{traceback.format_exc()}")
+        try:
+            torrents = self.torrents[self.page_start:self.page_start + 4]
+            tprogress = {'progress': []}
+            for torrent in torrents:
+                tprogress['progress'].append(torrent['progress'] * 100.0)
+            self.torrent_progress = json.dumps(tprogress)
+            self.rainmeter_values = torrent_format(torrents)
+            self.rainmeter_values['Title'] = {'Text': "BlockBust Viewer " + self.version}
+            self.rainmeter_values['ConnectionMeter'] = {'Text': "Connected to " + self.qb_data['url'] +
+                                                                "  qBittorrent " + self.qb_data['version']}
+            if self.inhibitor_plugin.get_inhibitor_state():
+                self.rainmeter_values['PlayButton'] = {'Hidden': "0"}
+                self.rainmeter_values['PauseButton'] = {'Hidden': "1"}
             else:
-                for meter in self.rainmeter_values.keys():
-                    for key, value in self.rainmeter_values[meter].items():
-                        self.rainmeter.RmExecute(f"[!SetOption {meter} {key} \"{value}\"]")
-
+                self.rainmeter_values['PlayButton'] = {'Hidden': "1"}
+                self.rainmeter_values['PauseButton'] = {'Hidden': "0"}
+            self.rainmeter_values['GlobalDownload'] = {
+                'Text': f"DL: {humanize.naturalsize(self.qb_data['global_dl'])}/s"}
+            self.rainmeter_values['GlobalUpload'] = {
+                'Text': f"UP: {humanize.naturalsize(self.qb_data['global_up'])}/s"}
+            self.rainmeter_values['GlobalPeers'] = {'Text': f"Connected peers: {self.qb_data['total_peers']}"}
+            self.rainmeter_values['FreeSpace'] = \
+                {'Text': f"Free space: {humanize.naturalsize(self.qb_data['free_space'])}"}
+            self.rainmeter_values['InhibitorMeter'] = {'Text': await self.inhibitor_plugin.get_inhibitor_status()}
+        except Exception as e:
+            logging.error(f"Failed to parse rainmeter values: {e}\n{traceback.format_exc()}")
+        else:
+            bang = ""
+            for meter in self.rainmeter_values.keys():
+                for key, value in self.rainmeter_values[meter].items():
+                    bang += f"[!SetOption {meter} {key} \"{value}\"]"
+            self.rainmeter.RmExecute(bang)
 
     def get_string(self) -> str:
         """Called by the rainmeter plugin to get the current display string"""

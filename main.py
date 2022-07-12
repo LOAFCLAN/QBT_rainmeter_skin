@@ -6,7 +6,7 @@ from threading import Thread
 
 try:
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.INFO,
         format=r"%(asctime)s - %(levelname)s - %(threadName)s - %(name)s - %(funcName)s - %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
         filename=r"D:\Rainmeter\Logs\log.log")
