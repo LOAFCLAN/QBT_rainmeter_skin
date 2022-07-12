@@ -23,11 +23,11 @@ class InhibitorState:
         self.message = None
         self.last_update = datetime.datetime.now()
 
-    def __str__(self):
+    def get_string(self) -> str:
         """Format the inhibitor state for use in Rainmeter"""
         string = "U.Speed:"
         if self.message is not "" and self.message is not None:
-            return string + self.message
+            return string + f" {self.message}"
         if not self.connected_to_inhibitor:
             string += "Disconnected"
             return string
@@ -46,6 +46,7 @@ class InhibitorState:
             string += " Uninhibited"
             if not self.overridden:
                 string += " Auto"
+        return string
 
     def __bool__(self):
         return self.inhibiting
@@ -75,7 +76,7 @@ class InhibitorPlugin:
 
     async def get_inhibitor_status(self) -> str:
         """Does like magic or something, I don't know"""
-        return str(self.state)
+        return self.state.get_string()
 
     async def get_inhibitor_state(self) -> bool:
         """Get the current state of the inhibitor"""
@@ -86,11 +87,11 @@ class InhibitorPlugin:
         self.event_loop = event_loop
         while True:
             if not self.state.connected_to_inhibitor:
-                logging.info("Connecting to inhibitor server")
+                logging.debug("Connecting to inhibitor server")
                 await self._connect()
             else:
                 if self.state.last_update < datetime.datetime.now() - datetime.timedelta(seconds=10):
-                    logging.info("Sending refresh message")
+                    logging.debug("Sending refresh message")
                     msg = APIMessageTX(msg_type="refresh", token=self.token)
                     async with self.write_lock:
                         self.writer.write(msg.encode('utf-8'))
@@ -100,7 +101,7 @@ class InhibitorPlugin:
     async def _connect(self):
         """Establish a connection to the inhibitor server"""
         if self.state.connected_to_inhibitor:
-            logging.info("Already connected to inhibitor server")
+            logging.debug("Already connected to inhibitor server")
             return
 
         if self.reader is not None:
@@ -111,7 +112,7 @@ class InhibitorPlugin:
         try:
             self.reader, self.writer = await asyncio.open_connection(self.url, self.main_port)
             self.connected = True
-            logging.info(f"Connecting to inhibitor server {self.url}:{self.main_port}")
+            logging.debug(f"Connecting to inhibitor server {self.url}:{self.main_port}")
         except OSError:
             try:
                 logging.error(f"Failed to connect to inhibitor server {self.url}:{self.main_port}")

@@ -49,7 +49,7 @@ class Rain:
         try:
             rm.RmLog(rm.LOG_NOTICE, "Reload Called")
             self.rainmeter = rm
-            logging.info("Reload called")
+            logging.debug("Reload called")
             self.event_loop = asyncio.new_event_loop()
             self.task = self.event_loop.create_task(self.true_init())
 
@@ -57,11 +57,11 @@ class Rain:
             self.background_thread.start()
 
             # Log info about the task
-            logging.info(f"Task: {self.task}")
-            logging.info(f"Task.done: {self.task.get_stack()}")
+            logging.debug(f"Task: {self.task}")
+            logging.debug(f"Task.done: {self.task.get_stack()}")
 
-            logging.info(f"Thread: {self.background_thread}")
-            logging.info(f"Thread alive: {self.background_thread.is_alive()}")
+            logging.debug(f"Thread: {self.background_thread}")
+            logging.debug(f"Thread alive: {self.background_thread.is_alive()}")
 
         except Exception as e:
             logging.error(f"Error in Reload: {e}")
@@ -80,9 +80,9 @@ class Rain:
         logging.info("Initializing rainmeter interface")
         try:
             self.rainmeter.RmLog(self.rainmeter.LOG_NOTICE, "Creating Rainmeter Interface")
-            logging.info("Creating rainmeter interface")
+            logging.debug("Creating rainmeter interface")
             self.rainmeter_interface = rm_interface.RainMeterInterface(self.rainmeter, self.event_loop)
-            logging.info("Initialized rainmeter interface")
+            logging.debug("Initialized rainmeter interface")
             self.rainmeter.RmLog(self.rainmeter.LOG_NOTICE, "Created Rainmeter Interface, creating updater")
         except Exception as e:
             logging.error(f"Error in true_init: {e}\n{traceback.format_exc()}")
@@ -91,7 +91,8 @@ class Rain:
         """Called by the rainmeter plugin"""
         try:
             if self.rainmeter_interface is None:
-                logging.critical("rainmeter_interface failed to initialize")
+                logging.warning("rainmeter_interface initializing")
+                self.rainmeter.RmExecute(f"[!SetOption ConnectionMeter Text \"Script initializing...\"]")
             else:
                 task = self.event_loop.create_task(self.rainmeter_interface.update())
                 task.add_done_callback(self._task_done)

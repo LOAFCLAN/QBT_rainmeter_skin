@@ -19,11 +19,11 @@ class RainMeterInterface:
 
     def __init__(self, rainmeter, event_loop):
         try:
-            logging.info(f"Initial working directory: {os.getcwd()}")
+            logging.debug(f"Initial working directory: {os.getcwd()}")
             os.chdir(os.path.dirname(os.path.abspath(__file__)))
-            logging.info(f"Changed working directory to: {os.getcwd()}")
+            logging.debug(f"Changed working directory to: {os.getcwd()}")
 
-            logging.info("Initializing RainMeterInterface")
+            logging.debug("Initializing RainMeterInterface")
             self.version = "v2.0"
             self.rainmeter = rainmeter
             self.event_loop = event_loop
@@ -46,25 +46,25 @@ class RainMeterInterface:
 
             self.page_start = 0
             self.torrent_num = 0
-            logging.info("Loading secrets.json")
+            logging.debug("Loading secrets.json")
             with open(r"C:\Users\Aidan\Documents\Rainmeter\Skins\qbt_widgetv2\@Resources\Scripts\secrets.json",
                       "r") as secrets_file:
                 secrets = json.load(secrets_file)
-            logging.info("secrets.json loaded")
+            logging.debug("secrets.json loaded")
             self.qb_user = secrets['Username']
             self.qb_pass = secrets['Password']
             self.qb_host = secrets['Host']
             self.qb = Client(self.qb_host)
             self.qb_connected = False
             self.qb_data = {}
-            logging.info("Launching background tasks")
+            logging.debug("Launching background tasks")
             self.inhibitor_plugin = InhibitorPlugin(url="localhost", main_port=47675, alt_port=47676)
             self.rainmeter.RmLog(self.rainmeter.LOG_NOTICE, "Launching background tasks")
             self.inhibitor_plug_task = self.event_loop.create_task(self.inhibitor_plugin.run(self.event_loop))
             self.refresh_task = self.event_loop.create_task(self.refresh_torrents())
-            logging.info("Background tasks launched")
+            logging.debug("Background tasks launched")
             self.refresh_task.add_done_callback(self._on_refresh_task_finished)
-            logging.info("Background tasks launched")
+            logging.debug("Background tasks launched")
         except Exception as e:
             logging.critical(f"Unable to initialize RainMeterInterface: {e}\n{traceback.format_exc()}")
 
@@ -136,6 +136,7 @@ class RainMeterInterface:
                 self.rainmeter_values['GlobalPeers'] = {'Text': f"Connected peers: {self.qb_data['total_peers']}"}
                 self.rainmeter_values['FreeSpace'] =\
                     {'Text': f"Free space: {humanize.naturalsize(self.qb_data['free_space'])}"}
+                self.rainmeter_values['InhibitorMeter'] = {'Text': await self.inhibitor_plugin.get_inhibitor_status()}
             except Exception as e:
                 logging.error(f"Failed to parse rainmeter values: {e}\n{traceback.format_exc()}")
 
