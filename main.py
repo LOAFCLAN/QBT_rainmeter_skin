@@ -4,12 +4,13 @@ import pathlib
 import traceback
 from threading import Thread
 
+current_script_dir = pathlib.Path(__file__).parent.resolve()
 try:
     logging.basicConfig(
         level=logging.INFO,
         format=r"%(asctime)s - %(levelname)s - %(threadName)s - %(name)s - %(funcName)s - %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
-        filename=r"D:\Rainmeter\Logs\log.log")
+        filename=os.path.join(current_script_dir, "log.log"))
 except Exception as e:
     logging.basicConfig(
         level=logging.INFO,

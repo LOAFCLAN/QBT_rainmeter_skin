@@ -4,6 +4,7 @@ import logging
 import traceback
 import json
 import os
+import pathlib
 
 import humanize
 import qbittorrent.client
@@ -46,8 +47,8 @@ class RainMeterInterface:
             self.page_start = 0
             self.torrent_num = 0
             logging.debug("Loading secrets.json")
-            with open(r"C:\Users\Aidan\Documents\Rainmeter\Skins\qbt_widgetv2\@Resources\Scripts\secrets.json",
-                      "r") as secrets_file:
+            current_script_dir = pathlib.Path(__file__).parent.resolve()
+            with open(os.path.join(current_script_dir, "secrets.json"), "r") as secrets_file:
                 secrets = json.load(secrets_file)
             logging.debug("secrets.json loaded")
             self.qb_user = secrets['Username']
