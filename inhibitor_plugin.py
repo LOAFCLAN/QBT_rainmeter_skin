@@ -4,13 +4,16 @@ import logging
 
 from helpers import APIMessageTX, APIMessageRX
 
-logging.basicConfig(level=logging.INFO,
-                    format=r"[%(asctime)s - %(levelname)s - %(threadName)s - %(name)s - %(funcName)s - %(message)s]")
+# logging.basicConfig(level=logging.INFO,
+#                     format=r"[%(asctime)s - %(levelname)s - %(threadName)s - %(name)s - %(funcName)s - %(message)s]")
+
+logging.getLogger(__name__).setLevel(logging.DEBUG)
 
 
 class InhibitorState:
 
     def __init__(self):
+        logging.info("Initializing InhibitorState")
         self.inhibiting = False
         self.inhibit_sources = []
         self.overridden = False
@@ -51,6 +54,8 @@ class InhibitorState:
 class InhibitorPlugin:
 
     def __init__(self, *args, **kwargs):
+        logging.info("Initializing InhibitorPlugin")
+        self.event_loop = None
         self.url = kwargs.get("url")
         self.main_port = kwargs.get("main_port")
         self.alt_port = kwargs.get("alt_port")
@@ -60,7 +65,6 @@ class InhibitorPlugin:
         self.terminate = False
         self.token = None
         self.state = InhibitorState()
-        pass
 
     async def execute(self, **kwargs) -> None:
         """Send a command to the api server"""
@@ -77,8 +81,9 @@ class InhibitorPlugin:
         """Get the current state of the inhibitor"""
         return bool(self.state)
 
-    async def run(self):
+    async def run(self, event_loop):
         """Run the plugin"""
+        self.event_loop = event_loop
         while True:
             if not self.state.connected_to_inhibitor:
                 logging.info("Connecting to inhibitor server")
@@ -140,7 +145,7 @@ class InhibitorPlugin:
         logging.info(f"Received token {self.token}")
 
         # Start listening for messages
-        asyncio.get_event_loop().create_task(self._listener()).add_done_callback(self._listener_done)
+        self.event_loop.create_task(self._listener()).add_done_callback(self._listener_done)
 
     def _listener_done(self, future):
         """Called when the listener is done"""
@@ -182,7 +187,6 @@ class InhibitorPlugin:
                     self.state.connected_to_inhibitor = False
                     await asyncio.sleep(1)
             await asyncio.sleep(0.5)
-
 
 # inhibitor_plugin = InhibitorPlugin(url="localhost", main_port=47675, alt_port=47676)
 # asyncio.get_event_loop().run_until_complete(inhibitor_plugin.run())
