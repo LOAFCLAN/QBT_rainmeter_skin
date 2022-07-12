@@ -4,7 +4,6 @@ import pathlib
 import traceback
 from threading import Thread
 
-current_script_dir = pathlib.Path(__file__).parent.resolve()
 try:
     logging.basicConfig(
         level=logging.INFO,
