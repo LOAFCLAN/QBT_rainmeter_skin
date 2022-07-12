@@ -39,9 +39,10 @@ class InhibitorState:
             return string
 
         if self.inhibiting:
-            string += " Inhibited -"
+            string += " Inhibited - "
             for source in self.inhibit_sources:
-                string += f" {source}"
+                string += f"{source} - "
+            string = string[:-3]
         else:
             string += " Uninhibited"
             if not self.overridden:

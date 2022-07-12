@@ -43,20 +43,24 @@ class GithubUpdater:
 
     async def run(self):
         while True:
-            logging.debug("Checking github for updates")
-            latest_release = await self._get_latest_release()
-            if latest_release is None:
-                logging.error("Failed to get latest release")
-                await asyncio.sleep(5)
-                continue
-            if latest_release["tag_name"] != await _get_installed_version():
-                logging.info(f"New version available: {latest_release['tag_name']}")
-                self.new_version_available = True
-                if self.on_update_available_callback is not None:
-                    await self.on_update_available_callback()
-            else:
-                self.new_version_available = False
-            await asyncio.sleep(60)
+            try:
+                logging.debug("Checking github for updates")
+                latest_release = await self._get_latest_release()
+                if latest_release is None:
+                    logging.error("Failed to get latest release")
+                    await asyncio.sleep(5)
+                    continue
+                if latest_release["tag_name"] != await _get_installed_version():
+                    logging.info(f"New version available: {latest_release['tag_name']}")
+                    self.new_version_available = True
+                    if self.on_update_available_callback is not None:
+                        await self.on_update_available_callback()
+                else:
+                    self.new_version_available = False
+            except Exception as e:
+                logging.error(f"Failed to check for updates: {e}")
+            finally:
+                await asyncio.sleep(60)
 
     async def make_recovery_shell_script(self):
         """Creates a shell script that can be used to restore the old version"""
