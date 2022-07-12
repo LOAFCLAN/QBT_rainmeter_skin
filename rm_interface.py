@@ -139,14 +139,11 @@ class RainMeterInterface:
                 self.rainmeter_values['InhibitorMeter'] = {'Text': await self.inhibitor_plugin.get_inhibitor_status()}
             except Exception as e:
                 logging.error(f"Failed to parse rainmeter values: {e}\n{traceback.format_exc()}")
+            else:
+                for meter in self.rainmeter_values.keys():
+                    for key, value in self.rainmeter_values[meter].items():
+                        self.rainmeter.RmExecute(f"[!SetOption {meter} {key} \"{value}\"]")
 
-    async def update(self):
-        """Called by the rainmeter plugin to update the display"""
-
-        for meter in self.rainmeter_meters:
-            async with self.rainmeter_lock:
-                for key, value in self.rainmeter_values[meter]:
-                    self.rainmeter.RmExecute(f"[!SetOption {meter} {key} \"{value}\"]")
 
     def get_string(self) -> str:
         """Called by the rainmeter plugin to get the current display string"""

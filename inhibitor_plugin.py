@@ -29,13 +29,13 @@ class InhibitorState:
         if self.message is not "" and self.message is not None:
             return string + f" {self.message}"
         if not self.connected_to_inhibitor:
-            string += "Disconnected"
+            string += " Disconnected"
             return string
         if not self.connected_to_qbt:
-            string += "No QBT connection"
+            string += " No QBT connection"
             return string
         if not self.connected_to_plex:
-            string += "No Plex connection"
+            string += " No Plex connection"
             return string
 
         if self.inhibiting:
@@ -45,7 +45,7 @@ class InhibitorState:
         else:
             string += " Uninhibited"
             if not self.overridden:
-                string += " Auto"
+                string += " - Auto"
         return string
 
     def __bool__(self):
@@ -153,7 +153,7 @@ class InhibitorPlugin:
         if future.exception() is not None:
             logging.error(f"Listener error: {future.exception()}")
         else:
-            logging.info("Listener done")
+            logging.debug("Listener done")
         self.state.connected_to_inhibitor = False
 
     async def _listener(self):
@@ -171,15 +171,16 @@ class InhibitorPlugin:
                 try:
                     msg = APIMessageRX(new_message)
                     if msg.msg_type == "state_update":
-                        logging.info(f"Received update message {msg}")
+                        logging.debug(f"Received update message {msg}")
                         self.state.inhibiting = msg.inhibiting
                         self.state.inhibit_sources = msg.inhibited_by
                         self.state.connected_to_qbt = msg.qbt_connection
                         self.state.connected_to_plex = msg.plex_connection
                         self.state.connected_to_inhibitor = self.connected
                         self.state.last_update = datetime.datetime.now()
+                        self.state.message = msg.message
                     elif msg.msg_type == "ack":
-                        logging.info(f"Received ack message")
+                        logging.debug(f"Received ack message")
                     else:
                         logging.warning(f"Unknown message type {msg.msg_type}")
                 except Exception as e:

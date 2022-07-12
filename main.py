@@ -6,7 +6,7 @@ from threading import Thread
 
 try:
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.DEBUG,
         format=r"%(asctime)s - %(levelname)s - %(threadName)s - %(name)s - %(funcName)s - %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
         filename=r"D:\Rainmeter\Logs\log.log")
@@ -93,9 +93,6 @@ class Rain:
             if self.rainmeter_interface is None:
                 logging.warning("rainmeter_interface initializing")
                 self.rainmeter.RmExecute(f"[!SetOption ConnectionMeter Text \"Script initializing...\"]")
-            else:
-                task = self.event_loop.create_task(self.rainmeter_interface.update())
-                task.add_done_callback(self._task_done)
         except Exception as e:
             logging.error(f"Error in Update: {e}")
 
