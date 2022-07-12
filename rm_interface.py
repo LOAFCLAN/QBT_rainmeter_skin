@@ -34,13 +34,13 @@ class RainMeterInterface:
             self.rainmeter_values = {}
             self.torrent_progress = ""
 
-            ini_parser = configparser.ConfigParser()
-            logging.info("Loading qbt_ini.ini")
-            ini_parser.read(r"..\..\qbt_ini.ini")
-            logging.info("qbt_ini.ini loaded")
+            # ini_parser = configparser.ConfigParser()
+            # logging.info("Loading qbt_ini.ini")
+            # ini_parser.read(r"..\..\qbt_ini.ini")
+            # logging.info("qbt_ini.ini loaded")
 
-            self.rainmeter_meters = \
-                [x for x in ini_parser.sections() if "Torrent" in x and "Measure" not in x and "style" not in x]
+            # self.rainmeter_meters = \
+            #     [x for x in ini_parser.sections() if "Torrent" in x and "Measure" not in x and "style" not in x]
 
             # self.rainmeter.RmExecute(f"[!SetOption Title Text \"BlockBust Viewer {self.version}\"]")
 
@@ -120,9 +120,8 @@ class RainMeterInterface:
                     tprogress['progress'].append(torrent['progress'] * 100.0)
                 self.torrent_progress = json.dumps(tprogress)
                 self.rainmeter_values = torrent_format(torrents)
-                self.rainmeter_values['InhibitorMeter'] = {'Text': await self.inhibitor_plugin.get_inhibitor_status()}
-                self.rainmeter_values['ConnectionMeter'] = {'Text': \
-                    "Connected to " + self.qb_data['url'] + "  qBittorrent " + self.qb_data['version']}
+                self.rainmeter_values['ConnectionMeter'] = {'Text': "Connected to " + self.qb_data['url'] +
+                                                                    "  qBittorrent " + self.qb_data['version']}
                 if self.inhibitor_plugin.get_inhibitor_state():
                     self.rainmeter_values['PlayButton'] = {'Hidden': "0"}
                     self.rainmeter_values['PauseButton'] = {'Hidden': "1"}

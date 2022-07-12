@@ -65,8 +65,8 @@ def torrent_format(tr_dict):
     for i in range(4):
         rm_values[f'TorrentName{i}'] = {'Text': tr_dict[i]['name']}
         rm_values[f'TorrentName{i}']['ToolTipText'] = tr_dict[i]['name']
-        rm_values[f'TorrentStatus{i}'] = {'Text': tr_dict[i]['state'].capitalize()}
-        rm_values[f'TorrentDSpeed{i}'] = {'Text': humanize.naturalsize(tr_dict[i]['dlspeed']) + "/s"}
+        rm_values[f'TorrentStatus{i}'] = {'Text': tr_dict[i]['state'][0].upper() + tr_dict[i]['state'][1:]}
+        rm_values[f'TorrentDSpeed{i}'] = {'Text': "Down speed: " + humanize.naturalsize(tr_dict[i]['dlspeed']) + "/s"}
         if rm_values[f'TorrentStatus{i}']['Text'] in _show_seeders:
             rm_values[f'TorrentSeeds{i}'] = {'Text': f"Seeds: {tr_dict[i]['num_complete']}({tr_dict[i]['num_seeds']})"}
         else:
@@ -78,9 +78,9 @@ def torrent_format(tr_dict):
               humanize.naturalsize(tr_dict[i]['downloaded']) + "/" +\
               humanize.naturalsize(tr_dict[i]['downloaded'] + tr_dict[i]['amount_left'])}
         rm_values[f'TorrentProgressBar{i}'] = {'BarColor': _barColors[rm_values[f'TorrentStatus{i}']['Text']]}
-        rm_values[f'TorrentUSpeed{i}'] = {'Text': humanize.naturalsize(tr_dict[i]['upspeed']) + "/s"}
+        rm_values[f'TorrentUSpeed{i}'] = {'Text': "Up speed: " + humanize.naturalsize(tr_dict[i]['upspeed']) + "/s"}
         rm_values[f'TorrentAddedOn{i}'] = {'Text': humanize.naturaltime(
             datetime.fromtimestamp(tr_dict[i]['added_on'], tz=timezone("US/Eastern")).replace(tzinfo=None)
         )}
-        rm_values[f'TorrentRatio{i}'] = {'Text': f"{tr_dict[i]['ratio']:.2f}"}
+        rm_values[f'TorrentRatio{i}'] = {'Text': f"Ratio: {tr_dict[i]['ratio']:.2f}"}
     return rm_values
