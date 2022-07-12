@@ -10,6 +10,8 @@ import humanize
 import qbittorrent.client
 from qbittorrent import Client
 
+import auto_update
+import combined_log
 from inhibitor_plugin import InhibitorPlugin
 from torrent_formatter import torrent_format
 
@@ -18,13 +20,13 @@ logging.getLogger(__name__).setLevel(logging.DEBUG)
 
 class RainMeterInterface:
 
-    def __init__(self, rainmeter, event_loop):
+    def __init__(self, rainmeter, event_loop, logging: combined_log.CombinedLogger):
         try:
             logging.debug(f"Initial working directory: {os.getcwd()}")
             os.chdir(os.path.dirname(os.path.abspath(__file__)))
             logging.debug(f"Changed working directory to: {os.getcwd()}")
 
-            logging.debug("Initializing RainMeterInterface")
+            self.logging.debug("Initializing RainMeterInterface")
             self.version = "v2.0"
             self.rainmeter = rainmeter
             self.event_loop = event_loop
@@ -46,38 +48,58 @@ class RainMeterInterface:
 
             self.page_start = 0
             self.torrent_num = 0
-            logging.debug("Loading secrets.json")
+            self.logging.debug("Loading secrets.json")
             current_script_dir = pathlib.Path(__file__).parent.resolve()
             with open(os.path.join(current_script_dir, "secrets.json"), "r") as secrets_file:
                 secrets = json.load(secrets_file)
-            logging.debug("secrets.json loaded")
+            self.logging.debug("secrets.json loaded")
             self.qb_user = secrets['Username']
             self.qb_pass = secrets['Password']
             self.qb_host = secrets['Host']
             self.qb = Client(self.qb_host)
             self.qb_connected = False
             self.qb_data = {}
-            logging.debug("Launching background tasks")
+            self.getting_banged = False
+            self.bang_string = ""
+            self.logging.debug("Launching background tasks")
             self.inhibitor_plugin = InhibitorPlugin(url="172.17.0.1", main_port=47675, alt_port=47676)
             self.rainmeter.RmLog(self.rainmeter.LOG_NOTICE, "Launching background tasks")
             self.inhibitor_plug_task = self.event_loop.create_task(self.inhibitor_plugin.run(self.event_loop))
             self.refresh_task = self.event_loop.create_task(self.refresh_torrents())
-            logging.debug("Background tasks launched")
+
+            self.auto_updater = auto_update.GithubUpdater("JayFromProgramming", "QBT_rainmeter_skin",
+                                                          restart_callback=self.on_update_installed(),
+                                                            update_available_callback=self.on_update_available())
+            self.auto_update_task = self.event_loop.create_task(self.auto_updater.run())
+
+            self.logging.debug("Background tasks launched")
             self.refresh_task.add_done_callback(self._on_refresh_task_finished)
-            logging.debug("Background tasks launched")
+            self.logging.debug("Background tasks launched")
         except Exception as e:
-            logging.critical(f"Unable to initialize RainMeterInterface: {e}\n{traceback.format_exc()}")
+            self.logging.critical(f"Unable to initialize RainMeterInterface: {e}\n{traceback.format_exc()}")
+
+    def on_update_installed(self):
+        """Called when the update is installed"""
+        pass
+
+    def on_update_available(self):
+        """"""
+        pass
 
     def _on_refresh_task_finished(self):
         self.rainmeter.RmLog(self.rainmeter.LOG_NOTICE, "Refresh task finished")
-        logging.critical("Refresh task finished")
+        self.logging.critical("Refresh task finished")
+
+    def get_bang(self) -> str:
+        """Called by the rainmeter plugin to get the current display string"""
+        return self.bang_string
 
     def _connect(self):
         try:
             self.qb.login(self.qb_user, self.qb_pass)
             self.qb_connected = True
         except Exception as e:
-            logging.critical(f"Unable to connect to server {e}\n{traceback.format_exc()}")
+            self.logging.critical(f"Unable to connect to server {e}\n{traceback.format_exc()}")
             self.rainmeter.RmLog(self.rainmeter.LOG_ERROR, f"Unable to connect to server {e}")
             self.qb_connected = False
 
@@ -139,11 +161,12 @@ class RainMeterInterface:
         except Exception as e:
             logging.error(f"Failed to parse rainmeter values: {e}\n{traceback.format_exc()}")
         else:
-            bang = ""
+            self.getting_banged = True
+            self.bang_string = ""
             for meter in self.rainmeter_values.keys():
                 for key, value in self.rainmeter_values[meter].items():
-                    bang += f"[!SetOption {meter} {key} \"{value}\"]"
-            self.rainmeter.RmExecute(bang)
+                    self.bang_string += f"[!SetOption {meter} {key} \"{value}\"]"
+            self.getting_banged = False
 
     def get_string(self) -> str:
         """Called by the rainmeter plugin to get the current display string"""

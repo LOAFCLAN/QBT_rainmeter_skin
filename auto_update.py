@@ -28,11 +28,11 @@ def cleanup():
 
 class GithubUpdater:
 
-    def __init__(self, owner: str, repo: str, restart_callback, on_update_available_callback=None):
+    def __init__(self, owner: str, repo: str, restart_callback=None, update_available_callback=None):
         self.repo = repo
         self.owner = owner
         self.restart_callback = restart_callback
-        self.on_update_available_callback = on_update_available_callback
+        self.on_update_available_callback = update_available_callback
         self.new_version_available = False
         cleanup()
 
@@ -50,6 +50,11 @@ class GithubUpdater:
                     logging.error("Failed to get latest release")
                     await asyncio.sleep(5)
                     continue
+
+                (json.dumps(latest_release, indent=4))
+
+                return
+
                 if latest_release["tag_name"] != await _get_installed_version():
                     logging.info(f"New version available: {latest_release['tag_name']}")
                     self.new_version_available = True
@@ -88,7 +93,7 @@ class GithubUpdater:
         release = await self._get_latest_release()
         # Download the zip file from github and extract it
         async with aiohttp.ClientSession() as session:
-            req = await session.get(release["assets"][0]["browser_download_url"])
+            req = await session.get(release["zipball_url"])
             with open("new_version.zip", "wb") as f:
                 while True:
                     chunk = await req.content.read(1024)
