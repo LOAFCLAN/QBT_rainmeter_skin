@@ -73,8 +73,9 @@ class GithubUpdater:
                     logging.info(f"New version available: {latest_release['tag_name']}")
                     self.new_version_available = True
                     if self.on_update_available_callback is not None:
+                        current_version = self._get_installed_version()
                         await self.on_update_available_callback(newest=latest_release["tag_name"],
-                                                                current=self._get_installed_version())
+                                                                current=current_version)
                 else:
                     self.new_version_available = False
             except Exception as e:
