@@ -94,8 +94,9 @@ class RainMeterInterface:
         """
         self.auto_update_task.cancel()  # Stop the auto updater so the user doesn't get multiple update prompts
         ini_parser = configparser.ConfigParser()
-        ini_parser.read(os.path.join(os.getenv('APPDATA'), 'Rainmeter\\Rainmeter.ini'), encoding='BOM_UTF16_LE')
-        self.logging.debug(ini_parser.sections())
+        with open(os.path.join(os.getenv('APPDATA'), 'Rainmeter\\Rainmeter.ini'), 'r', encoding='utf-16-le') as f:
+            ini_string = f.read()[1:]
+        ini_parser.read_string(ini_string)
         if "QBT_rainmeter_skin" not in ini_parser:
             self.logging.error("Unable to find qbittorrent skin.")
             return 0
