@@ -185,7 +185,14 @@ class RainMeterInterface:
 
     async def execute_bang(self, bang):
         """Called by the rainmeter plugin"""
-        pass
+        if bang == "updater_no":
+            self.rainmeter.RmExecute("[!DeactivateConfig \"QBT_rainmeter_skin\\Update-popup\"]")
+        if bang == "updater_yes":
+            self.rainmeter.RmExecute("[!DeactivateConfig \"QBT_rainmeter_skin\\Update-popup\"]")
+            self.refresh_task.cancel()
+            self.inhibitor_plug_task.cancel()
+            self.rainmeter.RmExecute("[!SetOption ConnectionMeter Text \"Performing update...\"]")
+            await self.auto_updater.preform_update()
 
     async def tear_down(self):
         """Call this when the plugin is being unloaded"""
