@@ -81,7 +81,9 @@ class RainMeterInterface:
 
     async def on_update_installed(self):
         """Called when the update is installed"""
-        pass
+        self.logging.info("Refreshing all rainmeter skins...")
+        self.rainmeter.RmExecute("[!RefreshApp]")
+        self.logging.error("Oh fuck, oh fuck")
 
     async def on_update_available(self):
         """
