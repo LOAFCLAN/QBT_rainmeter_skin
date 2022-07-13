@@ -95,48 +95,20 @@ class GithubUpdater:
         os.chmod("recovery.sh", 0o755)
         self.logging.info("Recovery shell script created")
 
-    async def preform_update(self):
-        """Downloads new version and replaces current version"""
-        if not self.new_version_available:
-            logging.info("No new version available")
+    async def preform_update(self, python_home: str):
+        """Downloads the latest version and replaces the current version"""
+        self.logging.info("Preforming update... (using gitpull)")
+        result = os.popen("git pull").read()
+        self.logging.info(result)
+        if result.startswith("Already up to date."):
+            self.logging.info("Already up to date - not updating")
             return
-        self.logging.info(f"Downloading new version: {self.repo}")
-        release = await self._get_latest_release()
-        # Download the zip file from github and extract it
-        async with aiohttp.ClientSession() as session:
-            req = await session.get(release["zipball_url"])
-            with open("new_version.zip", "wb") as f:
-                while True:
-                    chunk = await req.content.read(1024)
-                    if not chunk:
-                        break
-                    f.write(chunk)
+        self.logging.info("Updated")
+        # Run post update requirement update
+        result = os.popen(f"\"{python_home}\\python.exe\" -m pip install -r requirements.txt").read()
+        self.logging.info(result)
+        self.logging.info("Post update requirement update complete")
+        if self.restart_callback is not None:
+            self.restart_callback()
 
-        # # Zip the current version as a backup
-        # with zipfile.ZipFile("old_version.zip", "w") as f:
-        #     for root, dirs, files in os.walk(installed_dir):
-        #         for file in files:  # Make we don't include the file we are currently writing to
-        #             if file == "old_version.zip":
-        #                 continue
-        #             f.write(os.path.join(root, file))
 
-        await self.make_recovery_shell_script()  # Create recovery script
-
-        # Replace the current version with the new version
-        self.logging.info("Extracting new version")
-        with zipfile.ZipFile("new_version.zip", "r") as zip_ref:
-            zip_ref.extractall()
-        self.logging.info("New version extracted")
-        # Replace the current version with the new version
-        self.logging.info("New version installed")
-        with open("version.txt", "w") as f:
-            f.write(release["tag_name"])
-        # Delete the zip file
-        os.remove("new_version.zip")
-        self.logging.info("New version zip file deleted")
-        # Run PIP on requirements.txt
-        self.logging.info("Installing new version requirements")
-        os.system("pip install -r requirements.txt")
-        self.logging.info("New version requirements installed")
-        # Restart the server
-        await self.restart_callback()
