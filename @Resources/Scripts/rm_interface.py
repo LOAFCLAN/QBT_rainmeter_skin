@@ -91,7 +91,9 @@ class RainMeterInterface:
         Called when an update is available
         :return: Nothing
         """
-        bang = f"[!ActivateConfig \"QBT_rainmeter_skin\\Update-popup\"]" \
+        bang = f"[!ZPos \"2\" \"QBT_rainmeter_skin\\Update-popup\"]" \
+               f"[!Move ]" \
+               f"[!ActivateConfig \"QBT_rainmeter_skin\\Update-popup\"]" \
                f"[!SetOption CurrentVersion Text \"Current version: {current}\" \"QBT_rainmeter_skin\\Update-popup\"]" \
                f"[!SetOption NewVersion Text \"New version: {newest}\" \"QBT_rainmeter_skin\\Update-popup\"]"
         self.rainmeter.RmExecute(bang)
