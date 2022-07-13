@@ -58,7 +58,7 @@ class GithubUpdater:
                     await asyncio.sleep(5)
                     continue
 
-                self.logging.info(json.dumps(latest_release, indent=4))
+                # self.logging.info(json.dumps(latest_release, indent=4))
 
                 if "tag_name" not in latest_release:
                     self.logging.error("No latest release tag found")
@@ -69,7 +69,8 @@ class GithubUpdater:
                     logging.info(f"New version available: {latest_release['tag_name']}")
                     self.new_version_available = True
                     if self.on_update_available_callback is not None:
-                        await self.on_update_available_callback()
+                        await self.on_update_available_callback(newest=latest_release["tag_name"],
+                                                                current=await _get_installed_version())
                 else:
                     self.new_version_available = False
             except Exception as e:
@@ -111,13 +112,13 @@ class GithubUpdater:
                         break
                     f.write(chunk)
 
-        # Zip the current version as a backup
-        with zipfile.ZipFile("old_version.zip", "w") as f:
-            for root, dirs, files in os.walk(installed_dir):
-                for file in files:  # Make we don't include the file we are currently writing to
-                    if file == "old_version.zip":
-                        continue
-                    f.write(os.path.join(root, file))
+        # # Zip the current version as a backup
+        # with zipfile.ZipFile("old_version.zip", "w") as f:
+        #     for root, dirs, files in os.walk(installed_dir):
+        #         for file in files:  # Make we don't include the file we are currently writing to
+        #             if file == "old_version.zip":
+        #                 continue
+        #             f.write(os.path.join(root, file))
 
         await self.make_recovery_shell_script()  # Create recovery script
 

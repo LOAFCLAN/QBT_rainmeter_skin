@@ -85,12 +85,16 @@ class RainMeterInterface:
         self.rainmeter.RmExecute("[!RefreshApp]")
         self.logging.error("Oh fuck, oh fuck")
 
-    async def on_update_available(self):
-        """
+    async def on_update_available(self, newest=None, current=None):
+        """Called when an update is available""
         Called when an update is available
         :return: Nothing
         """
-
+        bang = f"[!ActivateConfig \"QBT_rainmeter_skin\\Update-popup\"]" \
+               f"[!SetOption CurrentVersion Text \"Current version: {current}\" \"QBT_rainmeter_skin\\Update-popup\"]" \
+               f"[!SetOption NewVersion Text \"New version: {newest}\" \"QBT_rainmeter_skin\\Update-popup\"]"
+        self.rainmeter.RmExecute(bang)
+        self.auto_update_task.cancel()
 
     def _on_refresh_task_finished(self):
         self.rainmeter.RmLog(self.rainmeter.LOG_NOTICE, "Refresh task finished")
@@ -126,6 +130,7 @@ class RainMeterInterface:
                     self.qb_data['global_dl'] = qb_data['server_state']['dl_info_speed']
                     self.qb_data['global_up'] = qb_data['server_state']['up_info_speed']
                     self.qb_data['total_peers'] = qb_data['server_state']['total_peer_connections']
+                    torrents = filter(lambda d: d['state'] != "stalledUP" and d['state'] != "missingFiles", torrents)
                     torrents = sorted(torrents, key=lambda d: d['added_on'])
                     torrents.reverse()
                     self.torrent_num = len(torrents)
@@ -184,4 +189,6 @@ class RainMeterInterface:
 
     async def tear_down(self):
         """Call this when the plugin is being unloaded"""
-        pass
+        self.refresh_task.cancel()
+        self.inhibitor_plug_task.cancel()
+        self.auto_update_task.cancel()
