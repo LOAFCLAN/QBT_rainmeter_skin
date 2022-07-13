@@ -22,7 +22,8 @@ def cleanup():
 
 class GithubUpdater:
 
-    def __init__(self, owner: str, repo: str, restart_callback=None, update_available_callback=None,
+    def __init__(self, owner: str, repo: str, restart_callback=None,
+                 update_available_callback: asyncio.coroutine = None,
                  logging: combined_log.CombinedLogger = None):
         self.repo = repo
         self.owner = owner
@@ -71,8 +72,7 @@ class GithubUpdater:
                     self.new_version_available = True
                     if self.on_update_available_callback is not None:
                         current_version = self._get_installed_version()
-                        await self.on_update_available_callback(newest=latest_release["tag_name"],
-                                                                current=current_version)
+                        await self.on_update_available_callback(newest=latest_release["tag_name"], current=current_version)
                 else:
                     self.new_version_available = False
             except Exception as e:
