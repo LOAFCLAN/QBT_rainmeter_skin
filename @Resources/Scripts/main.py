@@ -1,6 +1,4 @@
 import logging
-import os
-import pathlib
 import traceback
 from threading import Thread
 import asyncio
@@ -104,7 +102,8 @@ class Rain:
                 self.logging.warning("rainmeter_interface initializing")
                 self.rainmeter.RmExecute(f"[!SetOption ConnectionMeter Text \"Script initializing...\"]")
             else:
-                self.rainmeter.RmExecute(self.rainmeter_interface.get_bang())
+                if not self.rainmeter_interface.getting_banged:
+                    self.rainmeter.RmExecute(self.rainmeter_interface.get_bang())
         except Exception as e:
             self.logging.error(f"Error in Update: {e}\n{traceback.format_exc()}")
 

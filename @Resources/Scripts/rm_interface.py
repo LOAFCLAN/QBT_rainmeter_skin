@@ -1,5 +1,4 @@
 import asyncio
-import configparser
 import logging
 import traceback
 import json
@@ -70,8 +69,8 @@ class RainMeterInterface:
 
             self.auto_updater = auto_update.GithubUpdater("JayFromProgramming", "QBT_rainmeter_skin",
                                                           restart_callback=self.on_update_installed(),
-                                                            update_available_callback=self.on_update_available(),
-                                                            logging=self.logging)
+                                                          update_available_callback=self.on_update_available(),
+                                                          logging=self.logging)
             self.auto_update_task = self.event_loop.create_task(self.auto_updater.run())
 
             self.logging.debug("Background tasks launched")
@@ -80,13 +79,16 @@ class RainMeterInterface:
         except Exception as e:
             self.logging.critical(f"Unable to initialize RainMeterInterface: {e}\n{traceback.format_exc()}")
 
-    def on_update_installed(self):
+    async def on_update_installed(self):
         """Called when the update is installed"""
         pass
 
-    def on_update_available(self):
-        """"""
-        pass
+    async def on_update_available(self):
+        """
+        Called when an update is available
+        :return: Nothing
+        """
+        
 
     def _on_refresh_task_finished(self):
         self.rainmeter.RmLog(self.rainmeter.LOG_NOTICE, "Refresh task finished")
