@@ -88,7 +88,7 @@ class RainMeterInterface:
         Called when an update is available
         :return: Nothing
         """
-        
+
 
     def _on_refresh_task_finished(self):
         self.rainmeter.RmLog(self.rainmeter.LOG_NOTICE, "Refresh task finished")
