@@ -1,6 +1,8 @@
 import asyncio
 # import logging
+import json
 import os
+import traceback
 import zipfile
 import logging
 import aiohttp
@@ -49,16 +51,19 @@ class GithubUpdater:
         self.logging.debug("Starting auto update check")
         while True:
             try:
-                logging.debug("Checking github for updates")
+                self.logging.debug("Checking github for updates")
                 latest_release = await self._get_latest_release()
                 if latest_release is None:
-                    logging.error("Failed to get latest release")
+                    self.logging.error("Failed to get latest release")
                     await asyncio.sleep(5)
                     continue
 
                 self.logging.info(json.dumps(latest_release, indent=4))
 
-                return
+                if "tag_name" not in latest_release:
+                    self.logging.error("No latest release tag found")
+                    await asyncio.sleep(5)
+                    continue
 
                 if latest_release["tag_name"] != await _get_installed_version():
                     logging.info(f"New version available: {latest_release['tag_name']}")
@@ -75,9 +80,9 @@ class GithubUpdater:
     async def make_recovery_shell_script(self):
         """Creates a shell script that can be used to restore the old version"""
         if not self.new_version_available:
-            logging.info("No new version available")
+            self.logging.debug("No new version available")
             return
-        logging.info(f"Creating recovery shell script")
+        self.logging.info(f"Creating recovery shell script")
         with open("recovery.sh", "w") as f:
             f.write("#!/bin/bash\n")  # Made by Copilot so it likely won't work
             f.write(f"echo 'Restoring old version'\n")
@@ -87,14 +92,14 @@ class GithubUpdater:
             f.write(f"mv new_version old_version\n")
             f.write(f"echo 'Restored old version'\n")
         os.chmod("recovery.sh", 0o755)
-        logging.info("Recovery shell script created")
+        self.logging.info("Recovery shell script created")
 
     async def preform_update(self):
         """Downloads new version and replaces current version"""
         if not self.new_version_available:
             logging.info("No new version available")
             return
-        logging.info(f"Downloading new version: {self.repo}")
+        self.logging.info(f"Downloading new version: {self.repo}")
         release = await self._get_latest_release()
         # Download the zip file from github and extract it
         async with aiohttp.ClientSession() as session:
@@ -117,20 +122,20 @@ class GithubUpdater:
         await self.make_recovery_shell_script()  # Create recovery script
 
         # Replace the current version with the new version
-        logging.info("Extracting new version")
+        self.logging.info("Extracting new version")
         with zipfile.ZipFile("new_version.zip", "r") as zip_ref:
             zip_ref.extractall()
-        logging.info("New version extracted")
+        self.logging.info("New version extracted")
         # Replace the current version with the new version
-        logging.info("New version installed")
+        self.logging.info("New version installed")
         with open("version.txt", "w") as f:
             f.write(release["tag_name"])
         # Delete the zip file
         os.remove("new_version.zip")
-        logging.info("New version zip file deleted")
+        self.logging.info("New version zip file deleted")
         # Run PIP on requirements.txt
-        logging.info("Installing new version requirements")
+        self.logging.info("Installing new version requirements")
         os.system("pip install -r requirements.txt")
-        logging.info("New version requirements installed")
+        self.logging.info("New version requirements installed")
         # Restart the server
         await self.restart_callback()
