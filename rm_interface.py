@@ -62,14 +62,16 @@ class RainMeterInterface:
             self.getting_banged = False
             self.bang_string = ""
             self.logging.debug("Launching background tasks")
-            self.inhibitor_plugin = InhibitorPlugin(url="172.17.0.1", main_port=47675, alt_port=47676)
+            self.inhibitor_plugin = InhibitorPlugin(url="172.17.0.1", main_port=47675, alt_port=47676,
+                                                    logging=self.logging)
             self.rainmeter.RmLog(self.rainmeter.LOG_NOTICE, "Launching background tasks")
             self.inhibitor_plug_task = self.event_loop.create_task(self.inhibitor_plugin.run(self.event_loop))
             self.refresh_task = self.event_loop.create_task(self.refresh_torrents())
 
             self.auto_updater = auto_update.GithubUpdater("JayFromProgramming", "QBT_rainmeter_skin",
                                                           restart_callback=self.on_update_installed(),
-                                                            update_available_callback=self.on_update_available())
+                                                            update_available_callback=self.on_update_available(),
+                                                            logging=self.logging)
             self.auto_update_task = self.event_loop.create_task(self.auto_updater.run())
 
             self.logging.debug("Background tasks launched")

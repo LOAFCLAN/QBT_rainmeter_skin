@@ -1,11 +1,13 @@
 import asyncio
-import logging
+# import logging
 import os
 import zipfile
-
+import logging
 import aiohttp
 
 logging.getLogger(__name__).setLevel(logging.DEBUG)
+import combined_log
+
 installed_dir = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -28,12 +30,14 @@ def cleanup():
 
 class GithubUpdater:
 
-    def __init__(self, owner: str, repo: str, restart_callback=None, update_available_callback=None):
+    def __init__(self, owner: str, repo: str, restart_callback=None, update_available_callback=None,
+                 logging: combined_log.CombinedLogger = None):
         self.repo = repo
         self.owner = owner
         self.restart_callback = restart_callback
         self.on_update_available_callback = update_available_callback
         self.new_version_available = False
+        self.logging = logging
         cleanup()
 
     async def _get_latest_release(self):
@@ -42,6 +46,7 @@ class GithubUpdater:
                 return await resp.json()
 
     async def run(self):
+        self.logging.debug("Starting auto update check")
         while True:
             try:
                 logging.debug("Checking github for updates")
@@ -51,7 +56,7 @@ class GithubUpdater:
                     await asyncio.sleep(5)
                     continue
 
-                (json.dumps(latest_release, indent=4))
+                self.logging.info(json.dumps(latest_release, indent=4))
 
                 return
 
@@ -63,7 +68,7 @@ class GithubUpdater:
                 else:
                     self.new_version_available = False
             except Exception as e:
-                logging.error(f"Failed to check for updates: {e}")
+                self.logging.error(f"Failed to check for updates: {e}\n{traceback.format_exc()}")
             finally:
                 await asyncio.sleep(60)
 

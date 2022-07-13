@@ -61,6 +61,7 @@ class InhibitorPlugin:
         self.url = kwargs.get("url")
         self.main_port = kwargs.get("main_port")
         self.alt_port = kwargs.get("alt_port")
+        self.logging = kwargs.get("logging")
         self.reader = None
         self.write_lock = asyncio.Lock()
         self.writer = None
@@ -88,7 +89,7 @@ class InhibitorPlugin:
         self.event_loop = event_loop
         while True:
             if not self.state.connected_to_inhibitor:
-                logging.debug("Connecting to inhibitor server")
+                self.logging.debug("Connecting to inhibitor server")
                 await self._connect()
             else:
                 if self.state.last_update < datetime.datetime.now() - datetime.timedelta(seconds=10):
@@ -102,7 +103,7 @@ class InhibitorPlugin:
     async def _connect(self):
         """Establish a connection to the inhibitor server"""
         if self.state.connected_to_inhibitor:
-            logging.debug("Already connected to inhibitor server")
+            self.logging.debug("Already connected to inhibitor server")
             return
 
         if self.reader is not None:
@@ -113,15 +114,15 @@ class InhibitorPlugin:
         try:
             self.reader, self.writer = await asyncio.open_connection(self.url, self.main_port)
             self.connected = True
-            logging.debug(f"Connecting to inhibitor server {self.url}:{self.main_port}")
+            self.logging.debug(f"Connecting to inhibitor server {self.url}:{self.main_port}")
         except OSError:
             try:
-                logging.error(f"Failed to connect to inhibitor server {self.url}:{self.main_port}")
+                self.logging.error(f"Failed to connect to inhibitor server {self.url}:{self.main_port}")
                 self.reader, self.writer = await asyncio.open_connection(self.url, self.alt_port)
                 self.connected = True
             except Exception as e:
-                logging.error(f"Failed to connect to inhibitor server {self.url}:{self.alt_port}")
-                logging.error(e)
+                self.logging.error(f"Failed to connect to inhibitor server {self.url}:{self.alt_port}")
+                self.logging.error(e)
                 self.connected = False
                 return
 
@@ -141,10 +142,10 @@ class InhibitorPlugin:
                 self.token = msg.token
             self.state.connected_to_inhibitor = True
         except Exception as e:
-            logging.error(e)
+            self.logging.error(e)
             self.state.connected_to_inhibitor = False
             return
-        logging.info(f"Received token {self.token}")
+        self. logging.info(f"Received token {self.token}")
 
         # Start listening for messages
         self.event_loop.create_task(self._listener()).add_done_callback(self._listener_done)
@@ -152,9 +153,9 @@ class InhibitorPlugin:
     def _listener_done(self, future):
         """Called when the listener is done"""
         if future.exception() is not None:
-            logging.error(f"Listener error: {future.exception()}")
+            self.logging.error(f"Listener error: {future.exception()}")
         else:
-            logging.debug("Listener done")
+            self.logging.debug("Listener done")
         self.state.connected_to_inhibitor = False
 
     async def _listener(self):
@@ -163,16 +164,16 @@ class InhibitorPlugin:
             try:
                 new_message = await self.reader.readuntil(b'\n\r')
             except OSError as e:
-                logging.error(f"Lost connection to inhibitor server {e}")
+                self.logging.error(f"Lost connection to inhibitor server {e}")
                 self.state.connected_to_inhibitor = False
             except asyncio.exceptions.IncompleteReadError:
-                logging.error("Incomplete read from inhibitor server")
+                self.logging.error("Incomplete read from inhibitor server")
                 self.state.connected_to_inhibitor = False
             else:
                 try:
                     msg = APIMessageRX(new_message)
                     if msg.msg_type == "state_update":
-                        logging.debug(f"Received update message {msg}")
+                        self.logging.debug(f"Received update message {msg}")
                         self.state.inhibiting = msg.inhibiting
                         self.state.inhibit_sources = msg.inhibited_by
                         self.state.connected_to_qbt = msg.qbt_connection
@@ -181,12 +182,12 @@ class InhibitorPlugin:
                         self.state.last_update = datetime.datetime.now()
                         self.state.message = msg.message
                     elif msg.msg_type == "ack":
-                        logging.debug(f"Received ack message")
+                        self.logging.debug(f"Received ack message")
                     else:
-                        logging.warning(f"Unknown message type {msg.msg_type}")
+                        self.logging.warning(f"Unknown message type {msg.msg_type}")
                 except Exception as e:
-                    logging.error(e)
-                    logging.error(new_message)
+                    self.logging.error(e)
+                    self.logging.error(new_message)
                     self.state.connected_to_inhibitor = False
                     await asyncio.sleep(1)
             await asyncio.sleep(0.5)

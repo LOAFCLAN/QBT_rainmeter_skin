@@ -8,10 +8,10 @@ import asyncio
 import rm_interface
 from combined_log import CombinedLogger
 
+
 # logging.basicConfig(level=logging.DEBUG,
 #                     format=r"[%(asctime)s - %(levelname)s - %(threadName)s - %(name)s - %(funcName)s - %(message)s]",
 #                     filename=r"D:\Rainmeter\Logs\old_log.log")
-
 
 class Rain:
     """This whole class is just a pass-through to the rainmeter interface"""
@@ -81,7 +81,7 @@ class Rain:
         try:
             self.logging.info("Starting asyncio event loop")
             self.event_loop.run_forever()
-            self.logging.warning("Well shit")
+            self.logging.error("Well shit")
         except Exception as e:
             self.logging.error(f"Error in _start_asyncio: {e}")
 
@@ -95,7 +95,7 @@ class Rain:
             self.logging.debug("Initialized rainmeter interface")
             self.rainmeter.RmLog(self.rainmeter.LOG_NOTICE, "Created Rainmeter Interface, creating updater")
         except Exception as e:
-            logging.error(f"Error in true_init: {e}\n{traceback.format_exc()}")
+            self.logging.error(f"Error in true_init: {e}\n{traceback.format_exc()}")
 
     def Update(self) -> None:
         """Called by the rainmeter plugin"""
@@ -106,7 +106,7 @@ class Rain:
             else:
                 self.rainmeter.RmExecute(self.rainmeter_interface.get_bang())
         except Exception as e:
-            logging.error(f"Error in Update: {e}\n{traceback.format_exc()}")
+            self.logging.error(f"Error in Update: {e}\n{traceback.format_exc()}")
 
     def GetString(self) -> str:
         return self.rainmeter_interface.get_string()
