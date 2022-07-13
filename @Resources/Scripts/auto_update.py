@@ -9,7 +9,6 @@ import combined_log
 
 logging.getLogger(__name__).setLevel(logging.DEBUG)
 
-
 installed_dir = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -38,20 +37,18 @@ class GithubUpdater:
             async with session.get(f"https://api.github.com/repos/{self.owner}/{self.repo}/releases/latest") as resp:
                 return await resp.json()
 
-    @classmethod
-    def _get_installed_version(cls):
+    def _get_installed_version(self):
         try:
             current_script_dir = pathlib.Path(__file__).parent.resolve()
             with open(os.path.join(current_script_dir, "version.txt")) as version_file:
                 return version_file.read().strip()
         except Exception as e:
-            logging.error(f"Failed to get installed version: {e}")
+            self.logging.error(f"Failed to get installed version: {e}")
             return "unknown"
 
-    @classmethod
-    def version(cls):
+    def version(self):
         """Returns the installed version"""
-        return cls._get_installed_version()
+        return self._get_installed_version()
 
     async def run(self):
         self.logging.debug("Starting auto update check")
@@ -115,5 +112,3 @@ class GithubUpdater:
         self.logging.info("Post update requirement update complete")
         if self.restart_callback is not None:
             self.restart_callback()
-
-
