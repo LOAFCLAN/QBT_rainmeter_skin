@@ -51,6 +51,7 @@ class RainMeterInterface:
             current_script_dir = pathlib.Path(__file__).parent.resolve()
             with open(os.path.join(current_script_dir, "secrets.json"), "r") as secrets_file:
                 secrets = json.load(secrets_file)
+
             self.logging.debug("secrets.json loaded")
             self.qb_user = secrets['Username']
             self.qb_pass = secrets['Password']

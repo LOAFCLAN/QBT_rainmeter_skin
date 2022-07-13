@@ -1,25 +1,16 @@
 import asyncio
-# import logging
 import json
 import os
+import pathlib
 import traceback
-import zipfile
 import logging
 import aiohttp
-
-logging.getLogger(__name__).setLevel(logging.DEBUG)
 import combined_log
 
+logging.getLogger(__name__).setLevel(logging.DEBUG)
+
+
 installed_dir = os.path.dirname(os.path.realpath(__file__))
-
-
-async def _get_installed_version():
-    try:
-        with open("version.txt") as version_file:
-            return version_file.read().strip()
-    except Exception as e:
-        logging.error(f"Failed to get installed version: {e}")
-        return "unknown"
 
 
 def cleanup():
@@ -47,6 +38,21 @@ class GithubUpdater:
             async with session.get(f"https://api.github.com/repos/{self.owner}/{self.repo}/releases/latest") as resp:
                 return await resp.json()
 
+    @classmethod
+    async def _get_installed_version(cls):
+        try:
+            current_script_dir = pathlib.Path(__file__).parent.resolve()
+            with open(os.path.join(current_script_dir, "version.txt")) as version_file:
+                return version_file.read().strip()
+        except Exception as e:
+            logging.error(f"Failed to get installed version: {e}")
+            return "unknown"
+
+    @classmethod
+    async def get_version(cls):
+        """Returns the installed version"""
+        return await cls._get_installed_version()
+
     async def run(self):
         self.logging.debug("Starting auto update check")
         while True:
@@ -58,19 +64,17 @@ class GithubUpdater:
                     await asyncio.sleep(5)
                     continue
 
-                # self.logging.info(json.dumps(latest_release, indent=4))
-
                 if "tag_name" not in latest_release:
                     self.logging.error("No latest release tag found")
                     await asyncio.sleep(5)
                     continue
 
-                if latest_release["tag_name"] != await _get_installed_version():
+                if latest_release["tag_name"] != await self._get_installed_version():
                     logging.info(f"New version available: {latest_release['tag_name']}")
                     self.new_version_available = True
                     if self.on_update_available_callback is not None:
                         await self.on_update_available_callback(newest=latest_release["tag_name"],
-                                                                current=await _get_installed_version())
+                                                                current=await self._get_installed_version())
                 else:
                     self.new_version_available = False
             except Exception as e:
