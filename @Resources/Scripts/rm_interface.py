@@ -26,7 +26,6 @@ class RainMeterInterface:
             # logging.debug(f"Changed working directory to: {os.getcwd()}")
 
             self.logging.debug("Initializing RainMeterInterface")
-            self.version = "v2.0"
             self.rainmeter = rainmeter
             self.event_loop = event_loop
 
@@ -73,6 +72,7 @@ class RainMeterInterface:
                                                           update_available_callback=self.on_update_available(),
                                                           logging=self.logging)
             self.auto_update_task = self.event_loop.create_task(self.auto_updater.run())
+            self.version = self.auto_updater.version()
 
             self.logging.debug("Background tasks launched")
             self.refresh_task.add_done_callback(self._on_refresh_task_finished)
@@ -91,13 +91,20 @@ class RainMeterInterface:
         Called when an update is available
         :return: Nothing
         """
-        bang = f"[!ZPos \"2\" \"QBT_rainmeter_skin\\Update-popup\"]" \
-               f"[!Move ]" \
-               f"[!ActivateConfig \"QBT_rainmeter_skin\\Update-popup\"]" \
-               f"[!SetOption CurrentVersion Text \"Current version: {current}\" \"QBT_rainmeter_skin\\Update-popup\"]" \
-               f"[!SetOption NewVersion Text \"New version: {newest}\" \"QBT_rainmeter_skin\\Update-popup\"]"
+        self.auto_update_task.cancel()  # Stop the auto updater so the user doesn't get multiple update prompts
+        ini_parser = configparser.ConfigParser()
+        ini_parser.read("%appdata%\\Rainmeter\\Rainmeter.ini")
+        if "QBT_rainmeter_skin" not in ini_parser:
+            self.logging.error("Unable to find qbittorrent skin.")
+            return 0
+        qbt_x = ini_parser['QBT_rainmeter_skin']['WindowX']
+        qbt_y = ini_parser['QBT_rainmeter_skin']['WindowY']
+        bang = f"[!ZPos \"2\" \"QBT_rainmeter_skin\\update-popup\"]" \
+               f"[!Move \"{int(qbt_x) + 172}\" \"{int(qbt_y) + 100}\" \"QBT_rainmeter_skin\\update-popup\"]" \
+               f"[!ActivateConfig \"QBT_rainmeter_skin\\update-popup\"]" \
+               f"[!SetOption CurrentVersion Text \"Current version: {current}\" \"QBT_rainmeter_skin\\update-popup\"]" \
+               f"[!SetOption NewVersion Text \"New version: {newest}\" \"QBT_rainmeter_skin\\update-popup\"]"
         self.rainmeter.RmExecute(bang)
-        self.auto_update_task.cancel()
 
     def _on_refresh_task_finished(self):
         self.rainmeter.RmLog(self.rainmeter.LOG_NOTICE, "Refresh task finished")
@@ -189,9 +196,9 @@ class RainMeterInterface:
     async def execute_bang(self, bang):
         """Called by the rainmeter plugin"""
         if bang == "updater_no":
-            self.rainmeter.RmExecute("[!DeactivateConfig \"QBT_rainmeter_skin\\Update-popup\"]")
+            self.rainmeter.RmExecute("[!DeactivateConfig \"QBT_rainmeter_skin\\update-popup\"]")
         if bang == "updater_yes":
-            self.rainmeter.RmExecute("[!DeactivateConfig \"QBT_rainmeter_skin\\Update-popup\"]")
+            self.rainmeter.RmExecute("[!DeactivateConfig \"QBT_rainmeter_skin\\update-popup\"]")
             self.refresh_task.cancel()
             self.inhibitor_plug_task.cancel()
             self.rainmeter.RmExecute("[!SetOption ConnectionMeter Text \"Performing update...\"]")
