@@ -192,7 +192,8 @@ class RainMeterInterface:
             self.refresh_task.cancel()
             self.inhibitor_plug_task.cancel()
             self.rainmeter.RmExecute("[!SetOption ConnectionMeter Text \"Performing update...\"]")
-            await self.auto_updater.preform_update()
+            python_home = self.rainmeter.RmReadString("PythonHome")
+            await self.auto_updater.preform_update(python_home)
 
     async def tear_down(self):
         """Call this when the plugin is being unloaded"""
