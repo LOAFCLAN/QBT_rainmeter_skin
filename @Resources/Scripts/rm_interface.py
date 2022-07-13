@@ -69,8 +69,8 @@ class RainMeterInterface:
             self.refresh_task = self.event_loop.create_task(self.refresh_torrents())
 
             self.auto_updater = auto_update.GithubUpdater("JayFromProgramming", "QBT_rainmeter_skin",
-                                                          restart_callback=self.on_update_installed(),
-                                                          update_available_callback=self.on_update_available(),
+                                                          restart_callback=self.on_update_installed,
+                                                          update_available_callback=self.on_update_available,
                                                           logging=self.logging)
             self.auto_update_task = self.event_loop.create_task(self.auto_updater.run())
             self.version = self.auto_updater.version()
