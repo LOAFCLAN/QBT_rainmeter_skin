@@ -98,14 +98,17 @@ class RainMeterInterface:
         if "QBT_rainmeter_skin" not in ini_parser:
             self.logging.error("Unable to find qbittorrent skin.")
             return 0
-        qbt_x = ini_parser['QBT_rainmeter_skin']['WindowX']
-        qbt_y = ini_parser['QBT_rainmeter_skin']['WindowY']
-        bang = f"[!ZPos \"2\" \"QBT_rainmeter_skin\\update-popup\"]" \
-               f"[!Move \"{int(qbt_x) + 172}\" \"{int(qbt_y) + 100}\" \"QBT_rainmeter_skin\\update-popup\"]" \
-               f"[!ActivateConfig \"QBT_rainmeter_skin\\update-popup\"]" \
-               f"[!SetOption CurrentVersion Text \"Current version: {current}\" \"QBT_rainmeter_skin\\update-popup\"]" \
-               f"[!SetOption NewVersion Text \"New version: {newest}\" \"QBT_rainmeter_skin\\update-popup\"]"
-        self.rainmeter.RmExecute(bang)
+        try:
+            qbt_x = ini_parser['QBT_rainmeter_skin']['WindowX']
+            qbt_y = ini_parser['QBT_rainmeter_skin']['WindowY']
+            bang = f"[!ZPos \"2\" \"QBT_rainmeter_skin\\update-popup\"]" \
+                   f"[!Move \"{int(qbt_x) + 172}\" \"{int(qbt_y) + 100}\" \"QBT_rainmeter_skin\\update-popup\"]" \
+                   f"[!ActivateConfig \"QBT_rainmeter_skin\\update-popup\"]" \
+                   f"[!SetOption CurrentVersion Text \"Current version: {current}\" \"QBT_rainmeter_skin\\update-popup\"]" \
+                   f"[!SetOption NewVersion Text \"New version: {newest}\" \"QBT_rainmeter_skin\\update-popup\"]"
+            self.rainmeter.RmExecute(bang)
+        except Exception as e:
+            self.logging.error(f"Unable to show update popup: {e}\n{traceback.format_exc()}")
 
     def _on_refresh_task_finished(self):
         self.rainmeter.RmLog(self.rainmeter.LOG_NOTICE, "Refresh task finished")
