@@ -209,7 +209,7 @@ class RainMeterInterface:
             if bang == "updater_yes":
                 self.logging.info("Updating...")
                 self.rainmeter.RmExecute("[!DeactivateConfig \"QBT_rainmeter_skin\\update-popup\"]")
-                self.refresh_task.cancel()
+                self.running = False
                 self.inhibitor_plug_task.cancel()
                 self.rainmeter.RmExecute("[!SetOption ConnectionMeter Text \"Performing update...\"]")
                 self.rainmeter.RmExecute("[!Redraw]")
@@ -218,7 +218,7 @@ class RainMeterInterface:
                 await self.auto_updater.preform_update(python_home)
                 self.logging.info("Update complete")
         except Exception as e:
-            logging.error(f"Failed to execute bang: {e}\n{traceback.format_exc()}")
+            self.logging.error(f"Failed to execute bang: {e}\n{traceback.format_exc()}")
 
     async def tear_down(self):
         """Call this when the plugin is being unloaded"""
