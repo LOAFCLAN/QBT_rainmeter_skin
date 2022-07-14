@@ -212,8 +212,8 @@ class RainMeterInterface:
                 self.running = False
                 self.inhibitor_plug_task.cancel()
                 self.rainmeter.RmExecute("[!SetOption ConnectionMeter Text \"Performing update...\"]")
-                self.logging.info("Grabbing python home from rainmeter")
-                python_home = self.rainmeter.RmReadString("PythonHome")
+                self.rainmeter.RmExecute("[!Redraw]")
+                python_home = self.rainmeter.RmReadString("PythonHome", r"C:\Program Files\Python36", False)
                 self.logging.info(f"Python home: {python_home}, preforming update")
                 await self.auto_updater.preform_update(python_home)
                 self.logging.info("Update complete")
