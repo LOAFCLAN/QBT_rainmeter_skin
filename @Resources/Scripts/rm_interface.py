@@ -211,6 +211,7 @@ class RainMeterInterface:
                 self.rainmeter.RmExecute("[!DeactivateConfig \"QBT_rainmeter_skin\\update-popup\"]")
                 self.running = False
                 self.inhibitor_plug_task.cancel()
+                await asyncio.sleep(2)
                 self.rainmeter.RmExecute("[!SetOption ConnectionMeter Text \"Performing update...\"]")
                 self.rainmeter.RmExecute("[!Redraw]")
                 python_home = self.rainmeter.RmReadString("PythonHome", r"C:\Program Files\Python36", False)
