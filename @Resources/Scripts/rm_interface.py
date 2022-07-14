@@ -107,7 +107,8 @@ class RainMeterInterface:
                    f"[!ZPos \"2\" \"QBT_rainmeter_skin\\update-popup\"]" \
                    f"[!Move \"{int(qbt_x) + 172}\" \"{int(qbt_y) + 100}\" \"QBT_rainmeter_skin\\update-popup\"]" \
                    f"[!SetOption CurrentVersion Text \"Current version: {current}\" \"QBT_rainmeter_skin\\update-popup\"]" \
-                   f"[!SetOption NewVersion Text \"New version: {newest}\" \"QBT_rainmeter_skin\\update-popup\"]"
+                   f"[!SetOption NewVersion Text \"New version: {newest}\" \"QBT_rainmeter_skin\\update-popup\"]" \
+                   f"[!Redraw \"QBT_rainmeter_skin\\update-popup\"]"
             self.rainmeter.RmExecute(bang)
         except Exception as e:
             self.logging.error(f"Unable to show update popup: {e}\n{traceback.format_exc()}")
