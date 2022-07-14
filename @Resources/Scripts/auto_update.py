@@ -115,12 +115,13 @@ class GithubUpdater:
 
             self.logging.info("Preforming update... (using gitpull)")
             installed_dir = os.path.dirname(os.path.realpath(__file__))
+            current_script_dir = pathlib.Path(__file__).parent.resolve()
             os.chdir(installed_dir)
             result = os.popen("git pull").read()
             self.logging.info(result)
             if result.startswith("Already up to date."):
                 self.logging.info("Already up to date - not updating")
-                with open("version.txt", "w") as f:
+                with open(os.path.join(current_script_dir, "version.txt"), "w") as f:
                     f.write(latest_release["tag_name"])
                 return
             elif result == "":
@@ -132,7 +133,7 @@ class GithubUpdater:
             self.logging.info(result)
             self.logging.info("Post update requirement update complete")
 
-            with open("version.txt", "w") as f:
+            with open(os.path.join(current_script_dir, "version.txt"), "w") as f:
                 f.write(latest_release["tag_name"])
 
             if self.restart_callback is not None:
