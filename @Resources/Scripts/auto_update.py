@@ -127,7 +127,7 @@ class GithubUpdater:
                 return
             elif result == "":
                 self.logging.info("Some unknown git error occured, not updating")
-                return
+                return  # Not sure what happened
             self.logging.info("Updated")
             # Run post update requirement update
             result = os.popen(f"{python_home}\\python -m pip install -r requirements.txt").read()
