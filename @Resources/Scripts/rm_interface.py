@@ -202,15 +202,22 @@ class RainMeterInterface:
 
     async def execute_bang(self, bang):
         """Called by the rainmeter plugin"""
-        if bang == "updater_no":
-            self.rainmeter.RmExecute("[!DeactivateConfig \"QBT_rainmeter_skin\\update-popup\"]")
-        if bang == "updater_yes":
-            self.rainmeter.RmExecute("[!DeactivateConfig \"QBT_rainmeter_skin\\update-popup\"]")
-            self.refresh_task.cancel()
-            self.inhibitor_plug_task.cancel()
-            self.rainmeter.RmExecute("[!SetOption ConnectionMeter Text \"Performing update...\"]")
-            python_home = self.rainmeter.RmReadString("PythonHome")
-            await self.auto_updater.preform_update(python_home)
+        try:
+            if bang == "updater_no":
+                self.logging.info("Update not allowed")
+                self.rainmeter.RmExecute("[!DeactivateConfig \"QBT_rainmeter_skin\\update-popup\"]")
+            if bang == "updater_yes":
+                self.logging.info("Updating...")
+                self.rainmeter.RmExecute("[!DeactivateConfig \"QBT_rainmeter_skin\\update-popup\"]")
+                self.refresh_task.cancel()
+                self.inhibitor_plug_task.cancel()
+                self.rainmeter.RmExecute("[!SetOption ConnectionMeter Text \"Performing update...\"]")
+                python_home = self.rainmeter.RmReadString("PythonHome")
+                self.logging.info(f"Python home: {python_home}, preforming update")
+                await self.auto_updater.preform_update(python_home)
+                self.logging.info("Update complete")
+        except Exception as e:
+            logging.error(f"Failed to execute bang: {e}\n{traceback.format_exc()}")
 
     async def tear_down(self):
         """Call this when the plugin is being unloaded"""
