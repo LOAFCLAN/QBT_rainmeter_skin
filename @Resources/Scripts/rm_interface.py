@@ -209,9 +209,10 @@ class RainMeterInterface:
             if bang == "updater_yes":
                 self.logging.info("Updating...")
                 self.rainmeter.RmExecute("[!DeactivateConfig \"QBT_rainmeter_skin\\update-popup\"]")
-                self.refresh_task.cancel()
+                self.running = False
                 self.inhibitor_plug_task.cancel()
                 self.rainmeter.RmExecute("[!SetOption ConnectionMeter Text \"Performing update...\"]")
+                self.logging.info("Grabbing python home from rainmeter")
                 python_home = self.rainmeter.RmReadString("PythonHome")
                 self.logging.info(f"Python home: {python_home}, preforming update")
                 await self.auto_updater.preform_update(python_home)
