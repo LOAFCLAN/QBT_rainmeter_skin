@@ -98,7 +98,7 @@ class GithubUpdater:
         os.chmod("recovery.sh", 0o755)
         self.logging.info("Recovery shell script created")
 
-    async def preform_update(self):
+    async def preform_update(self, python_home):
         """Downloads the latest version and replaces the current version"""
         try:
             # Get release info
@@ -124,7 +124,7 @@ class GithubUpdater:
                 return
             self.logging.info("Updated")
             # Run post update requirement update
-            result = os.popen(f"pip install -r requirements.txt").read()
+            result = os.popen(f"{python_home}\\python -m pip install -r requirements.txt").read()
             self.logging.info(result)
             self.logging.info("Post update requirement update complete")
 
