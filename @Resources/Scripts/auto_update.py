@@ -98,18 +98,40 @@ class GithubUpdater:
         os.chmod("recovery.sh", 0o755)
         self.logging.info("Recovery shell script created")
 
-    async def preform_update(self, python_home: str):
+    async def preform_update(self):
         """Downloads the latest version and replaces the current version"""
-        self.logging.info("Preforming update... (using gitpull)")
-        result = os.popen("git pull").read()
-        self.logging.info(result)
-        if result.startswith("Already up to date."):
-            self.logging.info("Already up to date - not updating")
-            return
-        self.logging.info("Updated")
-        # Run post update requirement update
-        result = os.popen(f"\"{python_home}\\python.exe\" -m pip install -r requirements.txt").read()
-        self.logging.info(result)
-        self.logging.info("Post update requirement update complete")
-        if self.restart_callback is not None:
-            await self.restart_callback()
+        try:
+            # Get release info
+            self.logging.info("Getting latest release")
+            latest_release = await self._get_latest_release()
+
+            if latest_release is None:
+                self.logging.error("Failed to get latest release")
+                return
+
+            if "tag_name" not in latest_release:
+                self.logging.error("No latest release tag found")
+                return
+
+            self.logging.info("Preforming update... (using gitpull)")
+            result = os.popen("git pull").read()
+            self.logging.info(result)
+            if result.startswith("Already up to date."):
+                self.logging.info("Already up to date - not updating")
+                return
+            elif result == "":
+                self.logging.info("Some unknown git error occured, not updating")
+                return
+            self.logging.info("Updated")
+            # Run post update requirement update
+            result = os.popen(f"pip install -r requirements.txt").read()
+            self.logging.info(result)
+            self.logging.info("Post update requirement update complete")
+
+            with open("version.txt", "w") as f:
+                f.write(latest_release["tag_name"])
+
+            if self.restart_callback is not None:
+                await self.restart_callback()
+        except Exception as e:
+            self.logging.error(f"Failed to update: {e}\n{traceback.format_exc()}")
