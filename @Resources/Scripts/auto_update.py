@@ -120,6 +120,8 @@ class GithubUpdater:
             self.logging.info(result)
             if result.startswith("Already up to date."):
                 self.logging.info("Already up to date - not updating")
+                with open("version.txt", "w") as f:
+                    f.write(latest_release["tag_name"])
                 return
             elif result == "":
                 self.logging.info("Some unknown git error occured, not updating")
