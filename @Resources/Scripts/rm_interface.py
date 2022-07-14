@@ -216,7 +216,7 @@ class RainMeterInterface:
                 await self.auto_updater.preform_update(python_home)
                 self.logging.info("Update complete")
         except Exception as e:
-            logging.error(f"Failed to execute bang: {e}\n{traceback.format_exc()}")
+            self.logging.error(f"Failed to execute bang: {e}\n{traceback.format_exc()}")
 
     async def tear_down(self):
         """Call this when the plugin is being unloaded"""
