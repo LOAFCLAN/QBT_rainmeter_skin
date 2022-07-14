@@ -114,6 +114,8 @@ class GithubUpdater:
                 return
 
             self.logging.info("Preforming update... (using gitpull)")
+            installed_dir = os.path.dirname(os.path.realpath(__file__))
+            os.chdir(installed_dir)
             result = os.popen("git pull").read()
             self.logging.info(result)
             if result.startswith("Already up to date."):
