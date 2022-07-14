@@ -115,6 +115,7 @@ class GithubUpdater:
 
             self.logging.info("Preforming update... (using gitpull)")
             installed_dir = os.path.dirname(os.path.realpath(__file__))
+
             current_script_dir = pathlib.Path(__file__).parent.resolve()
             os.chdir(installed_dir)
             result = os.popen("git pull").read()
