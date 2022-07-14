@@ -216,8 +216,10 @@ class RainMeterInterface:
                 self.rainmeter.RmExecute("[!Redraw]")
                 python_home = self.rainmeter.RmReadString("PythonHome", r"C:\Program Files\Python36", False)
                 self.logging.info(f"Python home: {python_home}, preforming update")
-                await self.auto_updater.preform_update(python_home)
+                refresh = await self.auto_updater.preform_update(python_home)
                 self.logging.info("Update complete")
+                if not refresh:
+                    self.rainmeter.RmExecute("[!RefreshApp]")
         except Exception as e:
             self.logging.error(f"Failed to execute bang: {e}\n{traceback.format_exc()}")
 
