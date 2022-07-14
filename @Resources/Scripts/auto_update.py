@@ -72,7 +72,8 @@ class GithubUpdater:
                     self.new_version_available = True
                     if self.on_update_available_callback is not None:
                         current_version = self._get_installed_version()
-                        await self.on_update_available_callback(newest=latest_release["tag_name"], current=current_version)
+                        await self.on_update_available_callback(newest=latest_release["tag_name"],
+                                                                current=current_version)
                 else:
                     self.new_version_available = False
             except Exception as e:
@@ -111,4 +112,4 @@ class GithubUpdater:
         self.logging.info(result)
         self.logging.info("Post update requirement update complete")
         if self.restart_callback is not None:
-            self.restart_callback()
+            await self.restart_callback()
