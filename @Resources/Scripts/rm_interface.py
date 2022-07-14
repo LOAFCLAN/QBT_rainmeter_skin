@@ -103,9 +103,9 @@ class RainMeterInterface:
         try:
             qbt_x = ini_parser['QBT_rainmeter_skin']['WindowX']
             qbt_y = ini_parser['QBT_rainmeter_skin']['WindowY']
-            bang = f"[!ZPos \"2\" \"QBT_rainmeter_skin\\update-popup\"]" \
+            bang = f"[!ActivateConfig \"QBT_rainmeter_skin\\update-popup\"]" \
+                   f"[!ZPos \"2\" \"QBT_rainmeter_skin\\update-popup\"]" \
                    f"[!Move \"{int(qbt_x) + 172}\" \"{int(qbt_y) + 100}\" \"QBT_rainmeter_skin\\update-popup\"]" \
-                   f"[!ActivateConfig \"QBT_rainmeter_skin\\update-popup\"]" \
                    f"[!SetOption CurrentVersion Text \"Current version: {current}\" \"QBT_rainmeter_skin\\update-popup\"]" \
                    f"[!SetOption NewVersion Text \"New version: {newest}\" \"QBT_rainmeter_skin\\update-popup\"]"
             self.rainmeter.RmExecute(bang)
